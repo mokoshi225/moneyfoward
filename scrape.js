@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { chromium } = require('playwright');
 const { formatCurrency } = require('./utils');
-const { saveSnapshot } = require('./db');
+const { saveSnapshot, saveHoldings } = require('./db');
 
 async function scrape() {
   const browser = await chromium.launch({ headless: true });
@@ -56,11 +56,99 @@ async function scrape() {
       console.log('スクリーンショット保存: breakdown-error.png');
     }
 
+    let snapshotId = null;
     if (totalAssetsResult && categories.length > 0) {
-      saveSnapshot(totalAssetsResult, categories);
+      snapshotId = saveSnapshot(totalAssetsResult, categories);
     }
 
-    return { totalAssets: totalAssetsResult, categories };
+    console.log('\nポートフォリオ詳細を取得中...');
+    const holdings = [];
+    let totalValuation = 0;
+    let totalUnrealizedGain = 0;
+
+    try {
+      await page.goto('https://ssnb.x.moneyforward.com/bs/portfolio', { waitUntil: 'networkidle', timeout: 60000 });
+      console.log('ポートフォリオページ読み込み完了');
+
+      function parseJPY(str) {
+        const cleaned = String(str || '').replace(/[,円]/g, '').replace(/\s/g, '');
+        const num = parseInt(cleaned, 10);
+        return isNaN(num) ? 0 : num;
+      }
+
+      const tables = await page.locator('table');
+      const tableCount = await tables.count();
+
+      for (let t = 0; t < tableCount; t++) {
+        const headers = await tables.nth(t).locator('th').allTextContents();
+        const headerText = headers.join(' ');
+
+        let category = null;
+        if (headerText.includes('銘柄コード')) category = '株式(現物)';
+        else if (headerText.includes('基準価額')) category = '投資信託';
+        else if (headerText.includes('現在価値') && headerText.includes('評価損益')) category = '年金';
+
+        if (!category) continue;
+
+        const rows = await tables.nth(t).locator('tr');
+        const rowCount = await rows.count();
+
+        for (let r = 1; r < rowCount; r++) {
+          const cells = await rows.nth(r).locator('td').allTextContents();
+          if (cells.length < 3) continue;
+          const name = cells[0].trim();
+          if (name === '' || name === '合計評価額') continue;
+
+          if (category === '株式(現物)') {
+            const symbol = cells[0].trim();
+            const hName = cells[1].trim();
+            const quantity = parseFloat(cells[2].replace(/,/g, ''));
+            const avgCost = parseJPY(cells[3]);
+            const currentPrice = parseJPY(cells[4]);
+            const valuation = parseJPY(cells[5]);
+            const unrealizedGain = parseJPY(cells[7]);
+            const institution = cells[9] ? cells[9].trim() : '';
+            holdings.push({ category, symbol: symbol !== hName ? symbol : null, name: hName, valuation, unrealizedGain, quantity, avgCost, currentPrice, institution });
+            totalValuation += valuation;
+            totalUnrealizedGain += unrealizedGain;
+            console.log(`  ${category}: ${hName} 評価額=${formatCurrency(valuation)} 評価損益=${formatCurrency(unrealizedGain)}`);
+          } else if (category === '投資信託') {
+            const hName = cells[0].trim();
+            const quantity = parseFloat((cells[1] || '').replace(/,/g, ''));
+            const avgCost = parseJPY(cells[2]);
+            const currentPrice = parseJPY(cells[3]);
+            const valuation = parseJPY(cells[4]);
+            const unrealizedGain = parseJPY(cells[6]);
+            const institution = cells[8] ? cells[8].trim() : '';
+            holdings.push({ category, symbol: null, name: hName, valuation, unrealizedGain, quantity, avgCost, currentPrice, institution });
+            totalValuation += valuation;
+            totalUnrealizedGain += unrealizedGain;
+            console.log(`  ${category}: ${hName} 評価額=${formatCurrency(valuation)} 評価損益=${formatCurrency(unrealizedGain)}`);
+          } else if (category === '年金') {
+            const hName = cells[0].trim();
+            const cost = parseJPY(cells[1]);
+            const valuation = parseJPY(cells[2]);
+            const unrealizedGain = parseJPY(cells[3]);
+            holdings.push({ category, symbol: null, name: hName, valuation, unrealizedGain, quantity: null, avgCost: cost, currentPrice: null, institution: null });
+            totalValuation += valuation;
+            totalUnrealizedGain += unrealizedGain;
+            console.log(`  ${category}: ${hName} 評価額=${formatCurrency(valuation)} 評価損益=${formatCurrency(unrealizedGain)}`);
+          }
+        }
+      }
+
+      if (holdings.length > 0 && snapshotId) {
+        saveHoldings(snapshotId, holdings);
+      }
+      console.log(`\nポートフォリオ合計: 評価額=${formatCurrency(totalValuation)}, 評価損益=${formatCurrency(totalUnrealizedGain)}`);
+      console.log(`${holdings.length}件の銘柄を保存しました`);
+
+    } catch (e) {
+      console.log('ポートフォリオ取得に失敗:', e.message);
+      await page.screenshot({ path: '/home/mokoshi/moneyfoward/portfolio-error.png', fullPage: true });
+    }
+
+    return { totalAssets: totalAssetsResult, categories, holdings, totalValuation, totalUnrealizedGain };
 
   } catch (error) {
     console.error('エラーが発生しました:', error.message);
