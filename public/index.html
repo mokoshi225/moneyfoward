@@ -14,6 +14,16 @@
       <span class="label">総資産額</span>
       <span id="totalAssets" class="amount">取得中...</span>
     </div>
+    <div class="holdings-summary">
+      <div class="summary-item">
+        <span class="label">ポートフォリオ評価額</span>
+        <span id="totalValuation" class="amount-small">---</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">総合評価損益</span>
+        <span id="totalUnrealizedGain" class="amount-small">---</span>
+      </div>
+    </div>
   </header>
   
   <main>
@@ -29,6 +39,18 @@
       <h2>資産推移（履歴）</h2>
       <div class="chart-wrapper">
         <canvas id="lineChart"></canvas>
+      </div>
+    </section>
+    
+    <section class="chart-container full-width">
+      <h2>保有銘柄詳細</h2>
+      <div id="holdingsContent">
+        <div class="holdings-tabs">
+          <button class="tab-btn active" data-cat="株式(現物)">株式</button>
+          <button class="tab-btn" data-cat="投資信託">投資信託</button>
+          <button class="tab-btn" data-cat="年金">年金</button>
+        </div>
+        <div id="holdingsTableContainer"></div>
       </div>
     </section>
   </main>

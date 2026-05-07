@@ -112,3 +112,201 @@ main {
     font-size: 2rem;
   }
 }
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.holdings-summary {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-item .label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 0.3rem;
+}
+
+.amount-small {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.holdings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: #215CC4;
+  color: white;
+  border-color: #215CC4;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.holdings-table th {
+  background: #f0f2f5;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.holdings-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.holdings-table tr:hover {
+  background: #f8f9ff;
+}
+
+.holdings-table .positive {
+  color: #e74c3c;
+}
+
+.holdings-table .negative {
+  color: #3498db;
+}
+
+.holdings-table .right {
+  text-align: right;
+}
+
+.holdings-category-total {
+  margin: 0.5rem 0 1rem;
+  padding: 0.5rem 1rem;
+  background: #f0f2f5;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.holdings-summary {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-item .label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 0.3rem;
+}
+
+.amount-small {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.holdings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: #215CC4;
+  color: white;
+  border-color: #215CC4;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.holdings-table th {
+  background: #f0f2f5;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.holdings-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.holdings-table tr:hover {
+  background: #f8f9ff;
+}
+
+.holdings-table .positive {
+  color: #e74c3c;
+}
+
+.holdings-table .negative {
+  color: #3498db;
+}
+
+.holdings-table .right {
+  text-align: right;
+}
+
+.holdings-category-total {
+  margin: 0.5rem 0 1rem;
+  padding: 0.5rem 1rem;
+  background: #f0f2f5;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+}
