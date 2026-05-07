@@ -33,6 +33,24 @@ function initSchema() {
       FOREIGN KEY (snapshot_id) REFERENCES asset_snapshots(id)
     )
   `).run();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS holdings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      snapshot_id INTEGER NOT NULL,
+      category TEXT NOT NULL,
+      symbol TEXT,
+      name TEXT NOT NULL,
+      valuation INTEGER NOT NULL,
+      unrealized_gain INTEGER,
+      quantity REAL,
+      avg_cost REAL,
+      current_price REAL,
+      institution TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (snapshot_id) REFERENCES asset_snapshots(id)
+    )
+  `).run();
 }
 
 function saveSnapshot(totalAssets, categories) {
@@ -84,4 +102,31 @@ function closeDB() {
   }
 }
 
-module.exports = { saveSnapshot, getLatestSnapshot, getHistoricalSnapshots, closeDB };
+function saveHoldings(snapshotId, holdings) {
+  const db = getDB();
+  const stmt = db.prepare(`
+    INSERT INTO holdings (snapshot_id, category, symbol, name, valuation, unrealized_gain, quantity, avg_cost, current_price, institution)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const insertMany = db.transaction((items) => {
+    for (const h of items) {
+      stmt.run(snapshotId, h.category, h.symbol || null, h.name, h.valuation, h.unrealizedGain || null, h.quantity || null, h.avgCost || null, h.currentPrice || null, h.institution || null);
+    }
+  });
+  insertMany(holdings);
+}
+
+function getLatestHoldings() {
+  const db = getDB();
+  const snapshot = db.prepare('SELECT * FROM asset_snapshots ORDER BY id DESC LIMIT 1').get();
+  if (!snapshot) return null;
+  const holdings = db.prepare('SELECT * FROM holdings WHERE snapshot_id = ? ORDER BY category, name').all(snapshot.id);
+  return {
+    snapshotId: snapshot.id,
+    totalAssets: snapshot.total_assets,
+    scrapedAt: snapshot.scraped_at,
+    holdings: holdings
+  };
+}
+
+module.exports = { saveSnapshot, getLatestSnapshot, getHistoricalSnapshots, saveHoldings, getLatestHoldings, closeDB };

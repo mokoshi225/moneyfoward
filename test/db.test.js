@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { saveSnapshot, getLatestSnapshot, getHistoricalSnapshots, closeDB } = require('../db');
+const { saveSnapshot, getLatestSnapshot, getHistoricalSnapshots, saveHoldings, getLatestHoldings, closeDB } = require('../db');
 
 const DB_PATH = process.env.NODE_ENV === 'test' 
   ? '/tmp/assets-test.db' 
@@ -88,4 +88,28 @@ test('getHistoricalSnapshots returns all entries sorted ascending by date', () =
       expect(historical[2].total_assets).toBe('300,000円');
     });
   });
+});
+
+test('holdings table exists after saving snapshot', () => {
+  saveSnapshot('187,069,320円', []);
+  const Database = require('better-sqlite3');
+  const db = new Database(DB_PATH);
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='holdings'").all();
+  expect(tables.length).toBe(1);
+  db.close();
+});
+
+test('saveHoldings inserts holdings and getLatestHoldings retrieves them', () => {
+  const { saveHoldings, getLatestHoldings } = require('../db');
+  const snapshotId = saveSnapshot('187,069,320円', []);
+  const holdings = [
+    { category: '株式(現物)', symbol: '1489', name: 'NF日経高配当50', valuation: 93540, unrealizedGain: 48510, quantity: 30, avgCost: 1501, currentPrice: 3118, institution: 'SBI証券' },
+    { category: '投資信託', name: '楽天全米INDEX', valuation: 2364335, unrealizedGain: 1733174, quantity: 1, avgCost: 0, currentPrice: 0, institution: 'SMBC信託銀行' }
+  ];
+  saveHoldings(snapshotId, holdings);
+  
+  const saved = getLatestHoldings();
+  expect(saved).toBeDefined();
+  expect(saved.holdings).toBeDefined();
+  expect(Array.isArray(saved.holdings)).toBe(true);
 });
