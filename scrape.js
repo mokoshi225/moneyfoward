@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { chromium } = require('playwright');
+const { formatCurrency } = require('./utils');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -20,7 +21,7 @@ const { chromium } = require('playwright');
     await page.waitForTimeout(5000);
     console.log('ログイン後のURL:', page.url());
 
-    console.log('総資産額を取得中...');
+    console.log('総資産額と資産内訳を取得中...');
     
     const totalAssets = await page.locator('body').textContent();
     const match = totalAssets.match(/総資産[\s]*([\d,]+円)/);
@@ -36,6 +37,24 @@ const { chromium } = require('playwright');
       if (assetsAlt) {
         console.log('代替取得結果:', assetsAlt.trim());
       }
+    }
+
+    console.log('\n資産内訳を取得中...');
+    const assetBreakdown = await page.evaluate(() => {
+      return typeof initPieData !== 'undefined' ? initPieData : null;
+    });
+
+    if (assetBreakdown && Array.isArray(assetBreakdown)) {
+      console.log('資産内訳:');
+      assetBreakdown.forEach(item => {
+        if (item.name && typeof item.y === 'number') {
+          console.log(`  ${item.name}: ${formatCurrency(item.y)}`);
+        }
+      });
+    } else {
+      console.log('資産内訳の取得に失敗しました');
+      await page.screenshot({ path: '/home/mokoshi/moneyfoward/breakdown-error.png', fullPage: true });
+      console.log('スクリーンショット保存: breakdown-error.png');
     }
 
   } catch (error) {
