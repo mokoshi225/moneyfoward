@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>資産ダッシュボード</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>資産ダッシュボード</h1>
+    <div class="total-assets">
+      <span class="label">総資産額</span>
+      <span id="totalAssets" class="amount">取得中...</span>
+    </div>
+  </header>
+  
+  <main>
+    <section class="chart-container">
+      <h2>資産内訳（カテゴリ別）</h2>
+      <div class="chart-wrapper">
+        <canvas id="pieChart"></canvas>
+      </div>
+      <div id="categoryList" class="category-list"></div>
+    </section>
+    
+    <section class="chart-container">
+      <h2>資産推移（履歴）</h2>
+      <div class="chart-wrapper">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </section>
+  </main>
+  
+  <script src="app.js"></script>
+</body>
+</html>
